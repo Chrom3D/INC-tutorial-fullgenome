@@ -1,15 +1,4 @@
-
-# Software needed to run the steps described:
-- Boost (required by Chrom3D and Armatus): https://www.boost.org/
-- Chrom3D v1.0.2: https://github.com/Chrom3D/Chrom3D (available in your path)
-- Armatus 2.3: https://github.com/kingsfordgroup/armatus (available in your path) 
-- HiC-Pro: https://github.com/nservant/HiC-Pro
-- Bedtools2: https://github.com/arq5x/bedtools2 (available in your path)
-- Python  2.7 or 3: https://www.python.org/ (available in your path)
-- statsmodels: https://www.statsmodels.org/
-- ChimeraX: https://www.rbvi.ucsf.edu/chimerax/ (installed on your local computer)
-
-# A step-by-step guide showing how Chrom3D can be used to generate a 3D genome model of human chromsome 18
+# A step-by-step guide showing how Chrom3D can be used to generate a full 3D genome model
 **1.  Download the Hi-C data**
 ```bash
 # Setup the folder to run the analyses
@@ -182,10 +171,10 @@ python processing_scripts/make_diploid_gtrack.py D0_bead_interactions.lads.gtrac
 
 **19. Run Chrom3D based on the GTrack file (takes up to 20 hrs)**
 ```bash
-Chrom3D -l 10000 -y 0.15 -r 5.0 -n 3000000 D0_bead_interactions.lads.diploid.gtrack > model.cmm 2> model.err 
+Chrom3D -l 10000 -y 0.15 -r 5.0 -n 3000000 D0_bead_interactions.lads.diploid.gtrack > model_full.cmm 2> model_full.err 
 ```
 
-**18. Visualizing `model.cmm` in ChimeraX**
+**18. Visualizing `model_full.cmm` in ChimeraX**
 - If you are running this step-by-step guide on a server, download the `model.cmm` file to your local computer
 - The resulting `model.cmm` (and `model_redlad.cmm` from step 19) can be opened in ChimeraX and displays of these turned on and off in the bottom right "Models" panel. To generate tomographic views of models, the command "clip" can be used in the "Command:" field in the bottom panel of ChimeraX. Background color and other graphical adjustments can be performed by clicking the "Graphics" button in the top panel.
 - In ChimeraX, the command "shape sphere center 0,0,0 radius 5.0 color #ffc9b5 slab 0.5" can be used in the "Command" field in the bottom panel to display a nucleus structure on top of the model view. To change opacity of the nucleus model, click the colored square called "sphere" in the "Models" panel in the bottom right of the view, and select e.g. 30%. 
