@@ -116,19 +116,19 @@ paste left.tmp right.tmp | awk '{a[$1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6] += $7} END{
 rm left.tmp right.tmp
 ```
 
-**14. Remove interactions between beads overlapping centromeres**
+**15. Remove interactions between beads overlapping centromeres**
 ```bash
 curl -s "http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/cytoBand.txt.gz" | gunzip -c | grep acen | bedtools pairtobed -a D0_bead_interactions.intra.bedpe -b stdin -type neither > D0_bead_interactions.intra.nocen.bedpe
 ```
 
-**15. Identifying statistically significant inter-bead interactions within chromosomes, using the Non-central Hypergeometric distribution (NCHG)**
+**16. Identifying statistically significant inter-bead interactions within chromosomes, using the Non-central Hypergeometric distribution (NCHG)**
 ```bash
 processing_scripts/NCHG_hic/NCHG -m 50000 -p D0_bead_interactions.intra.nocen.bedpe > D0_bead_interactions.intra.nocen.NCHG.out
 
 # Correcting for multiple-testing using FDR:
 python processing_scripts/NCHG_fdr_oddratio_calc.py D0_bead_interactions.intra.nocen.NCHG.out fdr_bh 2 0.01 > D0_bead_interactions.intra.nocen.NCHG.sig
 ```
-**16. Identifying statistically significant inter-bead interactions between chromosomes**
+**17. Identifying statistically significant inter-bead interactions between chromosomes**
 ```bash
 # Create a BEDPE file containing interchromosomal interactions where 'blacklisted' regions are removed:
 cat hic/bedpe/inter/chr* | bedtools pairtobed -type neither -a stdin -b processing_scripts/unmappable_blacklist.bed | python processing_scripts/cap_chr_end.py chrom_hg19.sizes > D0_bead_interactions.inter.noblist.bedpe
@@ -139,7 +139,7 @@ processing_scripts/NCHG_hic/NCHG -i -p D0_bead_interactions.inter.noblist.bedpe 
 python processing_scripts/NCHG_fdr_oddratio_calc.py D0_bead_interactions.inter.noblist.NCHG.out fdr_bh 2 0.01 > D0_bead_interactions.inter.noblist.NCHG.sig
 
 ```
-**17. Mapping all (intra- and interchromosomal interactions) to the TADs/beads
+**18. Mapping all (intra- and interchromosomal interactions) to the TADs/beads
 ```bash
 awk '{printf("%s\t%s\t%s\n",$1,($2+$3)/2,1+($2+$3)/2)}' D0_bead_interactions.inter.noblist.NCHG.sig | bedtools intersect -wao -a stdin -b D0_beads.bed | cut -f 4,5,6 > left.tmp
 awk '{printf("%s\t%s\t%s\t%s\n",$4,($5+$6)/2,1+($5+$6)/2,$7)}' D0_bead_interactions.inter.noblist.NCHG.sig | bedtools intersect -wao -a stdin -b D0_beads.bed | awk '{printf("%s\t%s\t%s\t%s\n",$5,$6,$7,$4)}' > right.tmp
@@ -150,12 +150,12 @@ rm left.tmp right.tmp
 cat D0_bead_interactions.intra.nocen.NCHG.sig D0_bead_interactions.inter.noblist.NCHG.tadwise.sig | awk '$2!=-1 && $5!=-1' > D0_bead_interactions.all.sig
 ```
 
-**16. Generate the Chrom3D input file in GTrack format, specifying the 3D model setup**
+**19. Generate the Chrom3D input file in GTrack format, specifying the 3D model setup**
 ```bash
 python processing_scripts/makeGtrack.py D0_bead_interactions.all.sig D0_beads.bed > D0_bead_interactions.gtrack
 ```
 
-**17. Add LAD information to the GTrack file***
+**20. Add LAD information to the GTrack file***
 ```bash
 # Create header
 echo -e "##gtrack version: 1.0\n##track type: linked segments\n###seqid\tstart\tend\tid\tradius\tperiphery\tedges" > D0_bead_interactions.lads.gtrack
@@ -164,24 +164,24 @@ echo -e "##gtrack version: 1.0\n##track type: linked segments\n###seqid\tstart\t
 bedtools intersect -c -a D0_bead_interactions.gtrack -b lad/GSE109924_lad_D0-rep1.bed | awk '{if($7>=1) print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t1\t" $6; else  print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t.\t" $6}' >> D0_bead_interactions.lads.gtrack
 ```
 
-**18. Make the GTrack file define a diploid genome structure (optional)**
+**21. Make the GTrack file define a diploid genome structure (optional)**
 ```bash
 python processing_scripts/make_diploid_gtrack.py D0_bead_interactions.lads.gtrack > D0_bead_interactions.lads.diploid.gtrack
 ```
 
-**19. Run Chrom3D based on the GTrack file (takes up to 20 hrs)**
+**22. Run Chrom3D based on the GTrack file (takes up to 20 hrs)**
 ```bash
 Chrom3D -l 10000 -y 0.15 -r 5.0 -n 3000000 D0_bead_interactions.lads.diploid.gtrack > model_full.cmm 2> model_full.err 
 ```
 
-**18. Visualizing `model_full.cmm` in ChimeraX**
+**23. Visualizing `model_full.cmm` in ChimeraX**
 - If you are running this step-by-step guide on a server, download the `model.cmm` file to your local computer
 - The resulting `model.cmm` (and `model_redlad.cmm` from step 19) can be opened in ChimeraX and displays of these turned on and off in the bottom right "Models" panel. To generate tomographic views of models, the command "clip" can be used in the "Command:" field in the bottom panel of ChimeraX. Background color and other graphical adjustments can be performed by clicking the "Graphics" button in the top panel.
 - In ChimeraX, the command "shape sphere center 0,0,0 radius 5.0 color #ffc9b5 slab 0.5" can be used in the "Command" field in the bottom panel to display a nucleus structure on top of the model view. To change opacity of the nucleus model, click the colored square called "sphere" in the "Models" panel in the bottom right of the view, and select e.g. 30%. 
 - Again, "clip" can be used to clip this to generate tomographic views. The model can also be tilted to allow a better perception of depth in the structures. Figure 4 shows some of the resulting illustrations that can be generated using ChimeraX.
 
 
-**19. Coloring beads defined by LADs using red color**
+**24. Coloring beads defined by LADs using red color**
 ```bash
 unzip -j -d processing_scripts/ v.1.2.zip preprocess_scripts-v.1.2/color_beads.py
 
