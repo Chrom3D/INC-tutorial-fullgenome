@@ -186,6 +186,6 @@ Chrom3D -l 10000 -y 0.15 -r 5.0 -n 3000000 D0_bead_interactions.lads.diploid.gtr
 unzip -j -d processing_scripts/ v.1.2.zip preprocess_scripts-v.1.2/color_beads.py
 
 awk '$6==1' D0_bead_interactions.lads.gtrack | cut -f 4 > lads.ids
-python3 processing_scripts/color_beads.py model.cmm lads.ids 255,0,0 OVERRIDE > model_redlad.cmm
+python3 processing_scripts/color_beads.py model_full.cmm lads.ids 255,0,0 OVERRIDE > model_full_redlad.cmm
 ```
-- Do the steps from step 18., but open and visualize the `model_redlad.cmm` file instead
+- Do the steps from step 18., but open and visualize the `model_full_redlad.cmm` file instead
